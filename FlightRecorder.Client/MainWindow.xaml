@@ -16,7 +16,7 @@
     </Window.Resources>
 
     <Grid Margin="5">
-        <StackPanel>
+        <StackPanel Margin="0,38,0,0">
             <Grid Visibility="{Binding State, Converter={StaticResource ValueToVisibleConverter}, ConverterParameter=DisconnectedEmpty|DisconnectedSaved|DisconnectedUnsaved}">
                 <TextBlock Text="Cannot connect to SimConnect! Please start Microsoft Flight Simulator." HorizontalAlignment="Center" />
             </Grid>
@@ -196,5 +196,9 @@
                 </Grid>
             </Grid>
         </StackPanel>
+        <TextBlock HorizontalAlignment="Left" Margin="10,10,0,0" Text="IP:PORT" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBox x:Name="obs_url" HorizontalAlignment="Left" Margin="73,8,0,0" Text="ws://127.0.0.1:4444" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <PasswordBox x:Name="obs_password" HorizontalAlignment="Left" Margin="214,8,0,0" VerticalAlignment="Top" Width="120" Password="ANKA!10T001"/>
+        <Button x:Name="obs_connect" Content="Connect" HorizontalAlignment="Left" Margin="361,7,0,0" VerticalAlignment="Top" Width="62" Click="obs_connect_Click"/>
     </Grid>
 </Window>

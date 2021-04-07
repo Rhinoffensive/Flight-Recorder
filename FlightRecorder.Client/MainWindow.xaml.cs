@@ -3,6 +3,7 @@ using FlightRecorder.Client.SimConnectMSFS;
 using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
+using OBSWebsocketDotNet;
 using System;
 using System.Globalization;
 using System.IO;
@@ -36,9 +37,15 @@ namespace FlightRecorder.Client
 
         private IntPtr Handle;
 
+        protected OBSWebsocket _obs;
+
         public MainWindow(ILogger<MainWindow> logger, MainViewModel viewModel, Connector connector, IRecorderLogic recorderLogic, ImageLogic imageLogic, ExportLogic exportLogic, ThrottleLogic drawingThrottleLogic, StateMachine stateMachine)
         {
             InitializeComponent();
+            _obs = new OBSWebsocket();
+
+            _obs.Connected += onConnect;
+            _obs.Disconnected += onDisconnect;
 
             this.Loaded += MainWindow_Loaded;
             this.logger = logger;
@@ -64,6 +71,22 @@ namespace FlightRecorder.Client
 
             currentVersion = Assembly.GetEntryAssembly().GetName().Version.ToString();
             Title += " " + currentVersion;
+        }
+
+
+
+        private void onConnect(object sender, EventArgs e)
+        {
+            obs_url.IsEnabled = false;
+            obs_password.IsEnabled = false;
+            obs_connect.Content = "Disconnect";
+        }
+
+        private void onDisconnect(object sender, EventArgs e)
+        {
+            obs_url.IsEnabled = true;
+            obs_password.IsEnabled = true;
+            obs_connect.Content = "Connect";
         }
 
         private void StateMachine_StateChanged(object sender, StateChangedEventArgs e)
@@ -171,11 +194,14 @@ namespace FlightRecorder.Client
         private async void ButtonRecord_Click(object sender, RoutedEventArgs e)
         {
             await stateMachine.TransitAsync(StateMachine.Event.Record);
+            _obs.SendRequest("StartRecording");
+               
         }
 
         private async void ButtonStop_Click(object sender, RoutedEventArgs e)
         {
             await stateMachine.TransitAsync(StateMachine.Event.Stop);
+            _obs.SendRequest("StopRecording");
         }
 
         private void ButtonChangeSpeed_Click(object sender, RoutedEventArgs e)
@@ -466,6 +492,38 @@ namespace FlightRecorder.Client
                 logger.LogError(ex, "Cannot draw");
 #endif
             }
+        }
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+
+        }
+
+        private void obs_connect_Click(object sender, RoutedEventArgs e)
+        {
+
+            if (!_obs.IsConnected)
+            {
+                try
+                {
+                    _obs.Connect(obs_url.Text, obs_password.Password);
+                }
+                catch (AuthFailureException)
+                {
+                    MessageBox.Show("Authentication failed.", "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    return;
+                }
+                catch (ErrorResponseException ex)
+                {
+                    MessageBox.Show("Connect failed : " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                    return;
+                }
+            }
+            else
+            {
+                _obs.Disconnect();
+            }
+
         }
     }
 }

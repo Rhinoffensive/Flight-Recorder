@@ -131,6 +131,24 @@ namespace FlightRecorder.Client
         public double WingFlexPercent3;
         [SimConnectVariable(Name = "WING FLEX PCT:4", Unit = "Percent over 100", Type = SIMCONNECT_DATATYPE.FLOAT64, SetType = SetType.None)]
         public double WingFlexPercent4;
+
+
+        //My vars
+        [SimConnectVariable(Name = "PLANE TOUCHDOWN BANK DEGREES", Unit = "Degrees", Type = SIMCONNECT_DATATYPE.FLOAT64, SetType = SetType.None)]
+        public double PlaneTouchDownBank;
+        [SimConnectVariable(Name = "PLANE TOUCHDOWN HEADING DEGREES MAGNETIC", Unit = "Degrees", Type = SIMCONNECT_DATATYPE.FLOAT64, SetType = SetType.None)]
+        public double PlaneTouchHeadingMagnetic;
+        [SimConnectVariable(Name = "PLANE TOUCHDOWN LATITUDE", Unit = "Radians", Type = SIMCONNECT_DATATYPE.FLOAT64, SetType = SetType.None)]
+        public double PlaneTouchLatitude;
+        [SimConnectVariable(Name = "PLANE TOUCHDOWN LONGITUDE", Unit = "Radians", Type = SIMCONNECT_DATATYPE.FLOAT64, SetType = SetType.None)]
+        public double PlaneTouchLongitude;
+        [SimConnectVariable(Name = "PLANE TOUCHDOWN NORMAL VELOCITY", Unit = "Feet per second", Type = SIMCONNECT_DATATYPE.FLOAT64)]
+        public double PlaneTouchNormalVelocity;
+        [SimConnectVariable(Name = "PLANE TOUCHDOWN PITCH DEGREES", Unit = "Degrees", Type = SIMCONNECT_DATATYPE.FLOAT64, SetType = SetType.None)]
+        public double PlaneTouchPitch;
+
+
+
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 1)]
