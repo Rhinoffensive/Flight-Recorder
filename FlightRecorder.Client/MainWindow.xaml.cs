@@ -38,6 +38,7 @@ namespace FlightRecorder.Client
         private IntPtr Handle;
 
         protected OBSWebsocket _obs;
+        private string recordFile;
 
         public MainWindow(ILogger<MainWindow> logger, MainViewModel viewModel, Connector connector, IRecorderLogic recorderLogic, ImageLogic imageLogic, ExportLogic exportLogic, ThrottleLogic drawingThrottleLogic, StateMachine stateMachine)
         {
@@ -218,14 +219,23 @@ namespace FlightRecorder.Client
         {
             await stateMachine.TransitAsync(StateMachine.Event.Record);
             if (obs_connect.Content == "Disconnect")
+            {
                 _obs.SendRequest("StartRecording");
+               
+            }
+
 
         }
 
         private async void ButtonStop_Click(object sender, RoutedEventArgs e)
         {
             await stateMachine.TransitAsync(StateMachine.Event.Stop);
-            _obs.SendRequest("StopRecording");
+            if (obs_connect.Content == "Disconnect")
+            {
+                var response = _obs.SendRequest("GetRecordingStatus");
+                recordFile = (string)response["recordingFilename"];
+                _obs.SendRequest("StopRecording");
+            }
         }
 
         private void ButtonChangeSpeed_Click(object sender, RoutedEventArgs e)
@@ -364,25 +374,19 @@ namespace FlightRecorder.Client
 
             if (obs_connect.Content == "Disconnect")
             {
-                var dialogVideo = new SaveFileDialog
+         
+                var fileName = Path.ChangeExtension(recordFile, ".csv");
+                try
                 {
-                    FileName = $"Video Export {DateTime.Now:yyyy-MM-dd-HH-mm}.csv",
-                    Filter = "CSV (for Excel)|*.csv"
-                };
+                    await exportLogic.ExportTimeStampAsync(fileName, recorderLogic.RecordsVideo);
 
-                if (dialogVideo.ShowDialog() == true)
-                {
-                    try
-                    {
-                        await exportLogic.ExportTimeStampAsync(dialogVideo.FileName, recorderLogic.RecordsVideo);
-
-                        logger.LogDebug("Save file into {fileName}", dialogVideo.FileName);
-                    }
-                    catch (IOException)
-                    {
-                        MessageBox.Show("Flight Recorder cannot write the file to disk.\nPlease make sure the folder is accessible by Flight Recorder, and you are not overwriting a locked file.", "Flight Recorder", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
+                    logger.LogDebug("Save file into {fileName}", fileName);
                 }
+                catch (IOException)
+                {
+                    MessageBox.Show("Flight Recorder cannot write the file to disk.\nPlease make sure the folder is accessible by Flight Recorder, and you are not overwriting a locked file.", "Flight Recorder", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+
             }
 
 
