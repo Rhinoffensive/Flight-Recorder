@@ -14,5 +14,16 @@ namespace FlightRecorder.Client.Logics
             using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
             await csv.WriteRecordsAsync(records);
         }
+
+        public async Task ExportTimeStampAsync(string fileName,List<RecordVideoClass> timeStamps)
+        {
+            using var writer = new StreamWriter(fileName);
+            using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+            //csv.WriteRecords(timeStamps);
+            await csv.WriteRecordsAsync(timeStamps);
+
+
+            
+        }
     }
 }

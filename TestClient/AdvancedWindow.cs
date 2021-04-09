@@ -273,11 +273,11 @@ namespace TestClient
             var transitions = obs.GetTransitionList();
 
             LogMessage($"Found {transitions.Transitions.Count} transitions. Active: {transitions.CurrentTransition}");
-            foreach (var transition in transitions.Transitions)
-            {
-                var info = obs.GetTransitionSettings(transition.Name);
-                LogMessage($"Transition: {transition.Name} has {info.Count} settings");
-            }
+            //foreach (var transition in transitions.Transitions)
+            //{
+            //    var info = obs.GetTransitionSettings(transition.Name);
+            //    LogMessage($"Transition: {transition.Name} has {info.Count} settings");
+            //}
         }
 #pragma warning restore IDE1006 // Naming Styles
     }

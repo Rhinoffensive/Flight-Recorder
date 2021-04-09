@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using FlightRecorder;
+
 
 namespace FlightRecorder.Client.Logics
 {
@@ -20,6 +22,8 @@ namespace FlightRecorder.Client.Logics
         private readonly ILogger<RecorderLogic> logger;
         private readonly Connector connector;
 
+        private long elapsedTime;
+
         private int currentFrame;
 
         private double rate = 1;
@@ -32,6 +36,7 @@ namespace FlightRecorder.Client.Logics
         private bool isReplayStopping;
 
         private AircraftPositionStruct? currentPosition = null;
+        private string? currentVideoPosition = null;
         private long? lastTriggeredMilliseconds = null;
         private TaskCompletionSource<bool> tcs;
 
@@ -44,6 +49,8 @@ namespace FlightRecorder.Client.Logics
         private bool IsPausing => pausedMilliseconds != null;
 
         public List<(long milliseconds, AircraftPositionStruct position)> Records { get; private set; } = new();
+
+        public List<RecordVideoClass> RecordsVideo { get; private set; } = new();
 
         public RecorderLogic(ILogger<RecorderLogic> logger, Connector connector)
         {
@@ -63,10 +70,26 @@ namespace FlightRecorder.Client.Logics
         public void NotifyPosition(AircraftPositionStruct? value)
         {
             currentPosition = value;
+            elapsedTime = stopwatch.ElapsedMilliseconds;
 
             if (IsStarted && !IsEnded && value.HasValue)
             {
-                Records.Add((stopwatch.ElapsedMilliseconds, value.Value));
+                Records.Add((elapsedTime, value.Value));
+                RecordsUpdated?.Invoke(this, new EventArgs());
+            }
+        }
+
+
+        public void NotifyPositionVideo(string value)
+        {
+            currentVideoPosition = value;
+            if (value == null)
+                currentVideoPosition = "00:00:00.000";
+            
+
+            if (IsStarted && !IsEnded)
+            {   
+                RecordsVideo.Add(new RecordVideoClass(elapsedTime, currentVideoPosition));
                 RecordsUpdated?.Invoke(this, new EventArgs());
             }
         }
@@ -78,6 +101,7 @@ namespace FlightRecorder.Client.Logics
             startMilliseconds = stopwatch.ElapsedMilliseconds;
             endMilliseconds = null;
             Records = new List<(long milliseconds, AircraftPositionStruct position)>();
+            RecordsVideo = new List<RecordVideoClass>();
         }
 
         public void StopRecording()

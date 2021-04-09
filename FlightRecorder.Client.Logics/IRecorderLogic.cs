@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
+
 namespace FlightRecorder.Client.Logics
 {
     public interface IRecorderLogic
     {
         List<(long milliseconds, AircraftPositionStruct position)> Records { get; }
+        List<RecordVideoClass> RecordsVideo { get; }
         bool CanSave { get; }
 
         event EventHandler RecordsUpdated;
@@ -14,6 +16,9 @@ namespace FlightRecorder.Client.Logics
 
         void Initialize();
         void NotifyPosition(AircraftPositionStruct? value);
+
+        void NotifyPositionVideo(string value);
+        
         void Record();
         void StopRecording();
         bool Replay();

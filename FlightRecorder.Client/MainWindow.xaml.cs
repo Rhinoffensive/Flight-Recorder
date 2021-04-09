@@ -56,10 +56,12 @@ namespace FlightRecorder.Client
             this.exportLogic = exportLogic;
             this.drawingThrottleLogic = drawingThrottleLogic;
             this.stateMachine = stateMachine;
+            this._obs = _obs;
 
             stateMachine.StateChanged += StateMachine_StateChanged;
 
             connector.AircraftPositionUpdated += Connector_AircraftPositionUpdated;
+            connector.AircraftPositionUpdated += Connector_AircraftPositionUpdated_Video;
             connector.Frame += Connector_Frame;
             connector.Closed += Connector_Closed;
 
@@ -172,11 +174,32 @@ namespace FlightRecorder.Client
         {
             recorderLogic.NotifyPosition(e.Position);
 
+
+
+
             Dispatcher.Invoke(() =>
             {
                 viewModel.AircraftPosition = AircraftPosition.FromStruct(e.Position);
             });
         }
+
+        private void Connector_AircraftPositionUpdated_Video(object sender, AircraftPositionUpdatedEventArgs e)
+        {
+            if (obs_connect.Content == "Disconnect")
+            {
+                var response = _obs.SendRequest("GetRecordingStatus");
+
+                recorderLogic.NotifyPositionVideo((string)response["recordTimecode"]);
+
+
+
+                Dispatcher.Invoke(() =>
+                {
+                    viewModel.AircraftPosition = AircraftPosition.FromStruct(e.Position);
+                });
+            }
+        }
+
 
         private void Connector_Frame(object sender, EventArgs e)
         {
@@ -194,8 +217,9 @@ namespace FlightRecorder.Client
         private async void ButtonRecord_Click(object sender, RoutedEventArgs e)
         {
             await stateMachine.TransitAsync(StateMachine.Event.Record);
-            _obs.SendRequest("StartRecording");
-               
+            if (obs_connect.Content == "Disconnect")
+                _obs.SendRequest("StartRecording");
+
         }
 
         private async void ButtonStop_Click(object sender, RoutedEventArgs e)
@@ -317,6 +341,8 @@ namespace FlightRecorder.Client
                 FileName = $"Export {DateTime.Now:yyyy-MM-dd-HH-mm}.csv",
                 Filter = "CSV (for Excel)|*.csv"
             };
+
+
             if (dialog.ShowDialog() == true)
             {
                 try
@@ -335,6 +361,31 @@ namespace FlightRecorder.Client
                     MessageBox.Show("Flight Recorder cannot write the file to disk.\nPlease make sure the folder is accessible by Flight Recorder, and you are not overwriting a locked file.", "Flight Recorder", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
+
+            if (obs_connect.Content == "Disconnect")
+            {
+                var dialogVideo = new SaveFileDialog
+                {
+                    FileName = $"Video Export {DateTime.Now:yyyy-MM-dd-HH-mm}.csv",
+                    Filter = "CSV (for Excel)|*.csv"
+                };
+
+                if (dialogVideo.ShowDialog() == true)
+                {
+                    try
+                    {
+                        await exportLogic.ExportTimeStampAsync(dialogVideo.FileName, recorderLogic.RecordsVideo);
+
+                        logger.LogDebug("Save file into {fileName}", dialogVideo.FileName);
+                    }
+                    catch (IOException)
+                    {
+                        MessageBox.Show("Flight Recorder cannot write the file to disk.\nPlease make sure the folder is accessible by Flight Recorder, and you are not overwriting a locked file.", "Flight Recorder", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
+
+
         }
 
         private async void ButtonLoad_Click(object sender, RoutedEventArgs e)

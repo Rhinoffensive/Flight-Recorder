@@ -9,6 +9,13 @@ namespace FlightRecorder.Client.SimConnectMSFS
             Position = position;
         }
 
+
+        public AircraftPositionUpdatedEventArgs(string video_position)
+        {
+            Video_Position = video_position;
+        }
+
         public AircraftPositionStruct Position { get; }
+        public string Video_Position { get; }
     }
 }
